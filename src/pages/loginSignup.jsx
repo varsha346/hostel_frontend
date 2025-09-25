@@ -18,7 +18,6 @@ const LoginSignup
     setLoading(true);
     try {
       await axiosInstance.post("/auth/login", loginData);
-      // ✅ Cookie is set by backend, no need to store token manually
       navigate("/dashboard");
     } catch (error) {
       const msg = error?.response?.data?.error || "Login failed. Please try again.";
