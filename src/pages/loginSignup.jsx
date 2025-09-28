@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import axiosInstance from "../utils/axiosInstance";
 import { useNavigate, Link } from "react-router-dom";
+import Cookies from "js-cookie";
+import { jwtDecode } from "jwt-decode";
 
-const LoginSignup
- = () => {
+const LoginSignup = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [loginData, setLoginData] = useState({ email: "", password: "" });
   const [signupData, setSignupData] = useState({ name: "", email: "", password: "", userType: "" });
@@ -16,9 +17,27 @@ const LoginSignup
     e.preventDefault();
     setLoginError("");
     setLoading(true);
+
     try {
-      await axiosInstance.post("/auth/login", loginData);
-      navigate("/dashboard");
+      await axiosInstance.post("/auth/login", loginData, { withCredentials: true });
+
+      // ✅ Get token from cookie
+      const token = Cookies.get("token");
+      if (token) {
+        const decoded = jwtDecode(token);
+        const userType = decoded.userType;
+
+        // ✅ Navigate based on userType
+        if (userType === "Warden") {
+          navigate("/warden-dashboard");
+        } else if (userType === "Student") {
+          navigate("/student-dashboard");
+        } else {
+          navigate("/dashboard"); // fallback
+        }
+      } else {
+        setLoginError("No token found. Please try again.");
+      }
     } catch (error) {
       const msg = error?.response?.data?.error || "Login failed. Please try again.";
       setLoginError(msg);
@@ -111,13 +130,15 @@ const LoginSignup
               className="p-3 border rounded-lg"
               onChange={(e) => setSignupData({ ...signupData, password: e.target.value })}
             />
-            <input
-              type="text"
-              placeholder="Usertype (Student/Warden)"
+            <select
               required
               className="p-3 border rounded-lg"
               onChange={(e) => setSignupData({ ...signupData, userType: e.target.value })}
-            />
+            >
+              <option value="">Select Usertype</option>
+              <option value="Student">Student</option>
+              <option value="Warden">Warden</option>
+            </select>
 
             <button type="submit" className="p-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
               Sign Up
@@ -129,5 +150,4 @@ const LoginSignup
   );
 };
 
-export default LoginSignup
-;
+export default LoginSignup;

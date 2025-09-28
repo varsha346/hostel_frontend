@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import axiosInstance from "../utils/axiosInstance";
 import { jwtDecode } from "jwt-decode";
 import Cookies from "js-cookie";
+import { Trash2 } from "lucide-react";
 
 const Student_Leave = () => {
   const [studentId, setStudentId] = useState(null);
@@ -16,12 +17,12 @@ const Student_Leave = () => {
 
   // ✅ Decode JWT and extract userId from token
   useEffect(() => {
-    const token = Cookies.get("token"); // read cookie
+    const token = Cookies.get("token");
     if (!token) return;
 
     try {
       const decoded = jwtDecode(token);
-      const id = decoded.userId; // backend now sends userId in token
+      const id = decoded.userId;
       if (!id) return;
 
       setStudentId(id);
@@ -71,6 +72,16 @@ const Student_Leave = () => {
     }
   };
 
+  // ✅ Delete leave
+  const handleDelete = async (leaveId) => {
+    try {
+      await axiosInstance.delete(`/leaves/${leaveId}`);
+      setLeaves((prev) => prev.filter((leave) => leave.leaveId !== leaveId));
+    } catch (err) {
+      console.error("❌ Error deleting leave:", err);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 p-6 flex flex-col gap-6">
       {/* Leave History */}
@@ -83,7 +94,7 @@ const Student_Leave = () => {
             leaves.map((leave) => (
               <div
                 key={leave.leaveId}
-                className="p-3 border rounded-md bg-blue-50 hover:bg-blue-100"
+                className="p-3 border rounded-md bg-blue-50 hover:bg-blue-100 relative"
               >
                 <p>
                   <span className="font-semibold">From:</span> {leave.startDate}
@@ -108,6 +119,15 @@ const Student_Leave = () => {
                     {leave.status}
                   </span>
                 </p>
+
+                {/* Small delete button */}
+                <button
+                  onClick={() => handleDelete(leave.leaveId)}
+                  className="absolute top-2 right-2 text-red-600 hover:text-red-800"
+                  title="Delete Leave"
+                >
+                  <Trash2 size={18} />
+                </button>
               </div>
             ))
           )}
@@ -117,7 +137,10 @@ const Student_Leave = () => {
       {/* Apply Leave Form */}
       <section className="bg-white rounded-lg shadow-lg p-4">
         <h2 className="text-xl font-bold mb-4">Apply for Leave</h2>
-        <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4 items-start">
+        <form
+          onSubmit={handleSubmit}
+          className="grid grid-cols-2 gap-4 items-start"
+        >
           <div className="flex flex-col">
             <label className="font-medium">Start Date</label>
             <input
