@@ -1,144 +1,153 @@
 import React, { useEffect, useState } from "react";
 import axiosInstance from "../utils/axiosInstance";
+import { jwtDecode} from "jwt-decode";
+import Cookies from "js-cookie";
+import { Trash2 } from "lucide-react";
 
-const Complaints = ({ role, studentId }) => {
+const Student_Complaint = () => {
+  const [studentId, setStudentId] = useState(null);
   const [complaints, setComplaints] = useState([]);
+  const [subject, setSubject] = useState("");
   const [description, setDescription] = useState("");
 
-  // Fetch complaints
-  const fetchComplaints = async () => {
-    try {
-      let res;
-      if (role === "student") {
-        res = await axiosInstance.get(`/complaints/${studentId}`);
-        setComplaints(res.data);
-      } else {
-        res = await axiosInstance.get("/complaints/all");
-        setComplaints(res.data);
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
+  // ✅ Decode JWT to extract studentId
   useEffect(() => {
-    fetchComplaints();
+    const token = Cookies.get("token");
+    if (!token) return;
+
+    try {
+      const decoded = jwtDecode(token);
+      const id = decoded.userId;
+      if (!id) return;
+
+      setStudentId(id);
+      fetchComplaints(id);
+    } catch (err) {
+      console.error("❌ Invalid token:", err);
+    }
   }, []);
 
-  // Add complaint (Student)
-  const addComplaint = async () => {
+  // ✅ Fetch complaints for logged-in student
+  const fetchComplaints = async (id) => {
     try {
-      await axiosInstance.post("/complaints/add", {
+      const res = await axiosInstance.get(`/complaints/${id}`);
+      setComplaints(res.data);
+    } catch (err) {
+      console.error("❌ Error fetching complaints:", err);
+    }
+  };
+
+  // ✅ Submit new complaint
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!studentId || !subject.trim() || !description.trim()) return;
+
+    try {
+      await axiosInstance.post(`/complaints/${studentId}`, {
+        subject,
         description,
-        student: { stuId: studentId },
-        status: "PENDING",
+        status: "Pending",
+        date: new Date().toISOString(), // include date
       });
+
+      // Reset form fields
+      setSubject("");
       setDescription("");
-      fetchComplaints();
+      fetchComplaints(studentId);
     } catch (err) {
-      console.error(err);
+      console.error("❌ Error submitting complaint:", err);
     }
   };
 
-  // Delete complaint
-  const deleteComplaint = async (id) => {
+  // ✅ Delete complaint
+  const handleDelete = async (compId) => {
     try {
-      await axiosInstance.delete(`/complaints/${id}`);
-      fetchComplaints();
+      await axiosInstance.delete(`/complaints/${compId}`);
+      setComplaints((prev) => prev.filter((c) => c.compId !== compId));
     } catch (err) {
-      console.error(err);
-    }
-  };
-
-  // Update complaint status (Warden only)
-  const updateStatus = async (id, status) => {
-    try {
-      await axiosInstance.put(`/complaints/${id}?status=${status}`);
-      fetchComplaints();
-    } catch (err) {
-      console.error(err);
+      console.error("❌ Error deleting complaint:", err);
     }
   };
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">
-        {role === "student" ? "My Complaints" : "All Complaints"}
-      </h1>
+    <div className="min-h-screen bg-gray-100 p-6 flex flex-col gap-6">
+      {/* Complaint History */}
+      <section className="bg-white rounded-lg shadow-lg p-4">
+        <h2 className="text-xl font-bold mb-4">My Complaints</h2>
+        <div className="grid grid-cols-3 gap-4 max-h-64 overflow-y-auto">
+          {complaints.length === 0 ? (
+            <p className="text-gray-500">No complaints submitted yet.</p>
+          ) : (
+            complaints.map((comp) => (
+              <div
+                key={comp.compId}
+                className="p-3 border rounded-md bg-blue-50 hover:bg-blue-100 relative"
+              >
+                <p>
+                  <span className="font-semibold">Subject:</span> {comp.subject}
+                </p>
+                <p>
+                  <span className="font-semibold">Description:</span>{" "}
+                  {comp.description}
+                </p>
+                <p>
+                  <span className="font-semibold">Status:</span>{" "}
+                  <span
+                    className={`px-2 py-1 rounded text-white ${
+                      comp.status === "RESOLVED"
+                        ? "bg-green-500"
+                        : comp.status === "REJECTED"
+                        ? "bg-red-500"
+                        : "bg-yellow-500"
+                    }`}
+                  >
+                    {comp.status}
+                  </span>
+                </p>
 
-      {/* Student Form */}
-      {role === "student" && (
-        <div className="mb-6">
+                {/* Delete Button */}
+                <button
+                  onClick={() => handleDelete(comp.compId)}
+                  className="absolute top-2 right-2 text-red-600 hover:text-red-800"
+                  title="Delete Complaint"
+                >
+                  <Trash2 size={18} />
+                </button>
+              </div>
+            ))
+          )}
+        </div>
+      </section>
+
+      {/* Submit Complaint Form */}
+      <section className="bg-white rounded-lg shadow-lg p-4">
+        <h2 className="text-xl font-bold mb-4">Submit a Complaint</h2>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <input
+            type="text"
+            className="border rounded p-2 w-full"
+            placeholder="Enter subject"
+            value={subject}
+            onChange={(e) => setSubject(e.target.value)}
+            required
+          />
           <textarea
-            className="border p-2 w-full rounded-md"
+            className="border rounded p-2 w-full"
             placeholder="Enter your complaint..."
             value={description}
             onChange={(e) => setDescription(e.target.value)}
+            required
           />
           <button
-            onClick={addComplaint}
-            className="mt-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+            type="submit"
+            className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg"
           >
             Submit Complaint
           </button>
-        </div>
-      )}
-
-      {/* Complaints Table */}
-      <table className="w-full border-collapse border border-gray-300 shadow-md">
-        <thead className="bg-gray-100">
-          <tr>
-            <th className="border p-2">ID</th>
-            <th className="border p-2">Description</th>
-            <th className="border p-2">Status</th>
-            {role === "warden" && <th className="border p-2">Student</th>}
-            <th className="border p-2">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {complaints.map((comp) => (
-            <tr key={comp.compId || comp.id} className="text-center">
-              <td className="border p-2">{comp.compId || comp.id}</td>
-              <td className="border p-2">{comp.description}</td>
-              <td className="border p-2">{comp.status}</td>
-              {role === "warden" && (
-                <td className="border p-2">{comp.studentName}</td>
-              )}
-              <td className="border p-2 flex justify-center gap-2">
-                {/* Delete button */}
-                <button
-                  onClick={() => deleteComplaint(comp.compId || comp.id)}
-                  className="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600"
-                >
-                  Delete
-                </button>
-
-                {/* Status Update for Warden */}
-                {role === "warden" && (
-                  <div className="flex gap-1">
-                    <button
-                      onClick={() =>
-                        updateStatus(comp.compId, "IN_PROGRESS")
-                      }
-                      className="bg-yellow-500 text-white px-3 py-1 rounded-md hover:bg-yellow-600"
-                    >
-                      In Progress
-                    </button>
-                    <button
-                      onClick={() => updateStatus(comp.compId, "RESOLVED")}
-                      className="bg-green-600 text-white px-3 py-1 rounded-md hover:bg-green-700"
-                    >
-                      Resolve
-                    </button>
-                  </div>
-                )}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+        </form>
+      </section>
     </div>
   );
 };
 
-export default Complaints;
+export default Student_Complaint;

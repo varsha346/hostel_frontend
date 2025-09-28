@@ -6,7 +6,9 @@ import Student_Dashboard from "./pages/StudentDashboard";
 import Warden_Dashboard from "./pages/Warden_Dashboard";
 import Student_Leave from "./pages/Student_Leave";
 import EditProfile from "./pages/EditProfile";
-import Complaints from "./pages/Student_Complaint";
+import Student_Complaint from "./pages/Student_Complaint";
+import NoticeForm from "./pages/NoticeForm";
+import UpdateNotice from "./pages/updateNotice";
 
 function App() {
   return (
@@ -16,9 +18,12 @@ function App() {
         <Route path="/auth" element={<LoginSignup />} />
         <Route path="/student-dashboard" element={<Student_Dashboard />} />
         <Route path="/apply-leave" element={<Student_Leave/>} />
-        <Route path="/apply-complaint" element={<Complaints/>} />
+        <Route path="/apply-complaint" element={<Student_Complaint/>} />
         <Route path="/warden-dashboard" element={<Warden_Dashboard/>} />
+        <Route path="/warden/notices/create" element={<NoticeForm/>} />
+        <Route path="/warden/notices/update/:id" element={<UpdateNotice/>} />
         <Route path="/profile" element={<EditProfile/>} />
+
 
       </Routes>
     </Router>
