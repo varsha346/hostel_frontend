@@ -9,6 +9,9 @@ import EditProfile from "./pages/EditProfile";
 import Student_Complaint from "./pages/Student_Complaint";
 import NoticeForm from "./pages/NoticeForm";
 import UpdateNotice from "./pages/updateNotice";
+import RoomsPage from "./pages/RoomsPage";
+import RoomDetailPage from "./pages/RoomDetails";
+import PaymentPage from "./pages/PaymentPage";
 
 function App() {
   return (
@@ -22,6 +25,9 @@ function App() {
         <Route path="/warden-dashboard" element={<Warden_Dashboard/>} />
         <Route path="/warden/notices/create" element={<NoticeForm/>} />
         <Route path="/warden/notices/update/:id" element={<UpdateNotice/>} />
+        <Route path="/warden/rooms" element={<RoomsPage/>} />
+        <Route path="/rooms/:roomNo" element={<RoomDetailPage/>} />
+        <Route path="/payment/:roomNo" element={<PaymentPage />} />
         <Route path="/profile" element={<EditProfile/>} />
 
 

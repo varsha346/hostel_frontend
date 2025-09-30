@@ -172,6 +172,7 @@ const EditProfile = () => {
               required
             />
           </div>
+        
 
           {/* Fee Status */}
           <div className="flex items-center">

@@ -1,25 +1,29 @@
+// Student_Dashboard.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../utils/axiosInstance";
-import { Bar } from "react-chartjs-2";
+import { Bar ,Pie} from "react-chartjs-2";
 import "chart.js/auto";
 
 const Student_Dashboard = () => {
   const navigate = useNavigate();
 
   const [roomType, setRoomType] = useState("All");
-  const [rooms] = useState([
-    { id: 1, number: "101", type: "Single" },
-    { id: 2, number: "102", type: "Single" },
-    { id: 3, number: "201", type: "Double" },
-    { id: 4, number: "202", type: "Double" },
-  ]);
-
+  const [rooms, setRooms] = useState([]);
   const [complaints, setComplaints] = useState([]);
   const [notices, setNotices] = useState([]);
 
-  // Fetch complaints & notices
+  // Fetch rooms, complaints & notices
   useEffect(() => {
+    const fetchRooms = async () => {
+      try {
+        const res = await axiosInstance.get("/rooms/rooms-view?showAll=true", { withCredentials: true });
+        setRooms(res.data);
+      } catch (err) {
+        console.error("Failed to fetch rooms:", err);
+      }
+    };
+
     const fetchComplaints = async () => {
       try {
         const res = await axiosInstance.get("/complaints/all", { withCredentials: true });
@@ -38,6 +42,7 @@ const Student_Dashboard = () => {
       }
     };
 
+    fetchRooms();
     fetchComplaints();
     fetchNotices();
   }, []);
@@ -52,8 +57,7 @@ const Student_Dashboard = () => {
     }
   };
 
-  const filteredRooms =
-    roomType === "All" ? rooms : rooms.filter((room) => room.type === roomType);
+  const filteredRooms = roomType === "All" ? rooms : rooms.filter((room) => room.category.toLowerCase() === roomType.toLowerCase());
 
   // Chart logic
   const last6Days = [...Array(6)].map((_, i) => {
@@ -65,20 +69,14 @@ const Student_Dashboard = () => {
   const complaintsCount = last6Days.map((dayLabel) =>
     complaints.filter(
       (c) =>
-        new Date(c.createdAt).toLocaleDateString("en-GB", {
-          day: "numeric",
-          month: "short",
-        }) === dayLabel
+        new Date(c.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" }) === dayLabel
     ).length
   );
 
   const noticesCount = last6Days.map((dayLabel) =>
     notices.filter(
       (n) =>
-        new Date(n.createdAt).toLocaleDateString("en-GB", {
-          day: "numeric",
-          month: "short",
-        }) === dayLabel
+        new Date(n.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" }) === dayLabel
     ).length
   );
 
@@ -207,16 +205,30 @@ const Student_Dashboard = () => {
           <option value="All">All</option>
           <option value="Single">Single</option>
           <option value="Double">Double</option>
+          <option value="Triple">Triple</option>
+          <option value="Suite">Suite</option>
         </select>
-        <div className="flex flex-wrap gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {filteredRooms.map((room) => (
             <div
-              key={room.id}
-              className="w-24 h-20 flex flex-col items-center justify-center border rounded-lg bg-green-50 cursor-pointer hover:bg-green-100"
-              onClick={() => navigate(`/room/${room.id}`)}
+              key={room.roomNo}
+              className="h-48 rounded-lg overflow-hidden cursor-pointer shadow hover:shadow-lg relative"
+              onClick={() => navigate(`/rooms/${room.roomNo}`)}
             >
-              <span className="font-semibold">{room.number}</span>
-              <span className="text-sm text-gray-600">{room.type}</span>
+              {room.photos && room.photos.length > 0 ? (
+                <img
+                  src={room.photos[0]}
+                  alt={`Room ${room.roomNo}`}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-gray-200">
+                  No Image
+                </div>
+              )}
+              <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 p-2 text-white text-center font-semibold">
+                Room {room.roomNo}
+              </div>
             </div>
           ))}
         </div>
@@ -225,10 +237,54 @@ const Student_Dashboard = () => {
       {/* Chart */}
       <div className="bg-white p-4 rounded-lg shadow-lg">
         <h2 className="font-bold text-xl mb-4">Activity Last 6 Days</h2>
-        <div className="h-64"> {/* Set fixed height */}
+        <div className="h-64">
           <Bar data={chartData} options={{ maintainAspectRatio: false }} />
         </div>
       </div>
+
+      {/* Chart: Complaints by Status (Pie Chart) */}
+<div className="bg-white p-4 rounded-lg shadow-lg">
+  <h2 className="font-bold text-xl mb-4">Complaints Analysis</h2>
+  <div className="h-80 flex items-center justify-center">
+    <Pie
+      data={{
+        labels: ["Pending", "Processing", "Resolved", "Rejected"],
+        datasets: [
+          {
+            label: "Complaints",
+            data: [
+              complaints.filter((c) => c.status?.toLowerCase() === "pending").length,
+              complaints.filter((c) => c.status?.toLowerCase() === "processing").length,
+              complaints.filter((c) => c.status?.toLowerCase() === "resolved").length,
+              complaints.filter((c) => c.status?.toLowerCase() === "rejected").length,
+            ],
+            backgroundColor: [
+              "rgba(255, 206, 86, 0.6)",   // Pending - Yellow
+              "rgba(54, 162, 235, 0.6)",   // Processing - Blue
+              "rgba(75, 192, 192, 0.6)",   // Resolved - Green
+              "rgba(255, 99, 132, 0.6)",   // Rejected - Red
+            ],
+            borderColor: [
+              "rgba(255, 206, 86, 1)",
+              "rgba(54, 162, 235, 1)",
+              "rgba(75, 192, 192, 1)",
+              "rgba(255, 99, 132, 1)",
+            ],
+            borderWidth: 1,
+          },
+        ],
+      }}
+      options={{
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: "bottom", // place legend under chart
+          },
+        },
+      }}
+    />
+  </div>
+</div>
 
     </div>
   );

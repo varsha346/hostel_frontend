@@ -1,20 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../utils/axiosInstance";
+import { Bar, Pie } from "react-chartjs-2";
+import "chart.js/auto";
 
 const Warden_Dashboard = () => {
   const navigate = useNavigate();
 
-  // Leaves from backend
   const [leaves, setLeaves] = useState([]);
-
-  // Complaints from backend
   const [complaints, setComplaints] = useState([]);
-
-  // Notices from backend
   const [notices, setNotices] = useState([]);
 
-  // Fetch all data on load
   useEffect(() => {
     const fetchLeaves = async () => {
       try {
@@ -48,7 +44,6 @@ const Warden_Dashboard = () => {
     fetchNotices();
   }, []);
 
-  // Handle status change for leaves
   const handleLeaveStatusChange = async (id, newStatus) => {
     try {
       await axiosInstance.put(`/leaves/${id}/status`, { status: newStatus });
@@ -58,7 +53,6 @@ const Warden_Dashboard = () => {
     }
   };
 
-  // Handle status change for complaints
   const handleComplaintStatusChange = async (compId, newStatus) => {
     try {
       await axiosInstance.put(`/complaints/${compId}?status=${newStatus}`);
@@ -68,7 +62,6 @@ const Warden_Dashboard = () => {
     }
   };
 
-  // Handle delete notice
   const handleDeleteNotice = async (id) => {
     try {
       await axiosInstance.delete(`/notices/delete/${id}`);
@@ -78,7 +71,6 @@ const Warden_Dashboard = () => {
     }
   };
 
-  // Logout
   const handleLogout = async () => {
     try {
       await axiosInstance.post("/auth/logout", {});
@@ -89,23 +81,66 @@ const Warden_Dashboard = () => {
     }
   };
 
+  // ---- Chart logic (reuse student style) ----
+  const last6Days = [...Array(6)].map((_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (5 - i));
+    return d.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+  });
+
+  const complaintsCount = last6Days.map((dayLabel) =>
+    complaints.filter(
+      (c) =>
+        new Date(c.date || c.createdAt).toLocaleDateString("en-GB", {
+          day: "numeric",
+          month: "short",
+        }) === dayLabel
+    ).length
+  );
+
+  const leavesCount = last6Days.map((dayLabel) =>
+    leaves.filter(
+      (l) =>
+        new Date(l.startDate).toLocaleDateString("en-GB", {
+          day: "numeric",
+          month: "short",
+        }) === dayLabel
+    ).length
+  );
+
+  const chartData = {
+    labels: last6Days,
+    datasets: [
+      {
+        label: "Complaints",
+        data: complaintsCount,
+        backgroundColor: "rgba(255,99,132,0.6)",
+      },
+      {
+        label: "Leaves",
+        data: leavesCount,
+        backgroundColor: "rgba(54,162,235,0.6)",
+      },
+    ],
+  };
+
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col">
-      {/* ---------------- HEADER ---------------- */}
-      <header className="bg-white shadow p-4 flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Warden Dashboard</h1>
+    <div className="min-h-screen bg-gradient-to-r from-purple-100 via-blue-50 to-white p-6">
+      {/* HEADER */}
+      <header className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold text-gray-800">Warden Dashboard</h1>
         <div className="flex gap-3">
           <button
             className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg"
-            onClick={() => navigate("/warden/allocations/history")}
+            onClick={() => navigate("/warden/allocations")}
           >
-            Allocation History
+            Allocations
           </button>
           <button
-            className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg"
-            onClick={() => navigate("/warden/allocations/current")}
+            className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg"
+            onClick={() => navigate("/warden/rooms")}
           >
-            Current Allocation
+            Rooms
           </button>
           <button
             className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg"
@@ -122,12 +157,29 @@ const Warden_Dashboard = () => {
         </div>
       </header>
 
-      {/* ---------------- MAIN CONTENT ---------------- */}
-      <main className="flex-1 p-6 space-y-6">
-        {/* -------- Leaves Section -------- */}
-        <section className="bg-white rounded-lg shadow-lg p-4 flex flex-col">
-          <h2 className="text-xl font-bold mb-4">Leaves</h2>
-          <div className="flex-1 space-y-3 overflow-y-auto max-h-80">
+      {/* STAT CARDS */}
+      <div className="grid grid-cols-3 gap-6 mb-6">
+        <div className="bg-white p-4 rounded-lg shadow hover:shadow-lg transition">
+          <h2 className="text-gray-500 text-sm">Total Leaves</h2>
+          <p className="text-2xl font-bold">{leaves.length}</p>
+        </div>
+        <div className="bg-white p-4 rounded-lg shadow hover:shadow-lg transition">
+          <h2 className="text-gray-500 text-sm">Total Complaints</h2>
+          <p className="text-2xl font-bold">{complaints.length}</p>
+        </div>
+        <div className="bg-white p-4 rounded-lg shadow hover:shadow-lg transition">
+          <h2 className="text-gray-500 text-sm">Total Notices</h2>
+          <p className="text-2xl font-bold">{notices.length}</p>
+        </div>
+
+      </div>
+
+      {/* MAIN GRID */}
+      <div className="grid grid-cols-2 gap-6 mb-6">
+        {/* Leaves Section */}
+        <section className="bg-white p-4 rounded-lg shadow-lg">
+          <h2 className="font-bold text-xl mb-4">Leaves</h2>
+          <div className="space-y-3 max-h-80 overflow-y-auto">
             {leaves.length > 0 ? (
               leaves.map((leave) => (
                 <div key={leave.leaveId} className="p-3 border rounded-md bg-blue-50 hover:bg-blue-100">
@@ -152,10 +204,10 @@ const Warden_Dashboard = () => {
           </div>
         </section>
 
-        {/* -------- Complaints Section -------- */}
-        <section className="bg-white rounded-lg shadow-lg p-4 flex flex-col">
-          <h2 className="text-xl font-bold mb-4">Complaints</h2>
-          <div className="flex-1 space-y-3 overflow-y-auto max-h-80">
+        {/* Complaints Section */}
+        <section className="bg-white p-4 rounded-lg shadow-lg">
+          <h2 className="font-bold text-xl mb-4">Complaints</h2>
+          <div className="space-y-3 max-h-80 overflow-y-auto">
             {complaints.length > 0 ? (
               complaints.map((c) => (
                 <div key={c.compId} className="p-3 border rounded-md bg-red-50 hover:bg-red-100">
@@ -180,44 +232,91 @@ const Warden_Dashboard = () => {
             )}
           </div>
         </section>
+      </div>
 
-        {/* -------- Notices Section -------- */}
-        <section className="bg-white rounded-lg shadow-lg p-4 flex flex-col">
-          <h2 className="text-xl font-bold mb-4">Notices</h2>
-          <div className="flex-1 space-y-4 max-h-80 overflow-y-auto">
-            {notices.length > 0 ? (
-              notices.map((notice) => (
-                <div
-                  key={notice.noticeId}
-                  className="bg-gray-50 p-4 rounded-lg shadow flex justify-between items-start hover:shadow-lg transition"
-                >
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold mb-1">{notice.title}</h3>
-                    <p className="text-gray-700 mb-1">{notice.description}</p>
-                    <p className="text-gray-400 text-sm">{new Date(notice.createdAt).toLocaleString()}</p>
-                  </div>
-                  <div className="flex flex-col gap-2 ml-4">
-                    <button
-                      className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded"
-                      onClick={() => navigate(`/warden/notices/update/${notice.noticeId}`)}
-                    >
-                      Update
-                    </button>
-                    <button
-                      className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
-                      onClick={() => handleDeleteNotice(notice.noticeId)}
-                    >
-                      Delete
-                    </button>
-                  </div>
+      {/* Notices Section */}
+      <section className="bg-white p-4 rounded-lg shadow-lg mb-6">
+        <h2 className="font-bold text-xl mb-4">Notices</h2>
+        <div className="space-y-4 max-h-80 overflow-y-auto">
+          {notices.length > 0 ? (
+            notices.map((notice) => (
+              <div
+                key={notice.noticeId}
+                className="bg-gray-50 p-4 rounded-lg shadow flex justify-between items-start hover:shadow-lg transition"
+              >
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold mb-1">{notice.title}</h3>
+                  <p className="text-gray-700 mb-1">{notice.description}</p>
+                  <p className="text-gray-400 text-sm">{new Date(notice.createdAt).toLocaleString()}</p>
                 </div>
-              ))
-            ) : (
-              <p className="text-gray-500">No notices found.</p>
-            )}
+                <div className="flex flex-col gap-2 ml-4">
+                  <button
+                    className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded"
+                    onClick={() => navigate(`/warden/notices/update/${notice.noticeId}`)}
+                  >
+                    Update
+                  </button>
+                  <button
+                    className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
+                    onClick={() => handleDeleteNotice(notice.noticeId)}
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            ))
+          ) : (
+            <p className="text-gray-500">No notices found.</p>
+          )}
+        </div>
+      </section>
+
+      {/* Charts */}
+      <div className="grid grid-cols-2 gap-6">
+        <div className="bg-white p-4 rounded-lg shadow-lg">
+          <h2 className="font-bold text-xl mb-4">Activity Last 6 Days</h2>
+          <div className="h-64">
+            <Bar data={chartData} options={{ maintainAspectRatio: false }} />
           </div>
-        </section>
-      </main>
+        </div>
+
+        <div className="bg-white p-4 rounded-lg shadow-lg">
+          <h2 className="font-bold text-xl mb-4">Complaints Analysis</h2>
+          <div className="h-80 flex items-center justify-center">
+            <Pie
+              data={{
+                labels: ["Pending", "Processing", "Resolved", "Rejected"],
+                datasets: [
+                  {
+                    label: "Complaints",
+                    data: [
+                      complaints.filter((c) => c.status?.toLowerCase() === "pending").length,
+                      complaints.filter((c) => c.status?.toLowerCase() === "processing").length,
+                      complaints.filter((c) => c.status?.toLowerCase() === "resolved").length,
+                      complaints.filter((c) => c.status?.toLowerCase() === "rejected").length,
+                    ],
+                    backgroundColor: [
+                      "rgba(255, 206, 86, 0.6)", // Pending - Yellow
+                      "rgba(54, 162, 235, 0.6)", // Processing - Blue
+                      "rgba(75, 192, 192, 0.6)", // Resolved - Green
+                      "rgba(255, 99, 132, 0.6)", // Rejected - Red
+                    ],
+                    borderWidth: 1,
+                  },
+                ],
+              }}
+              options={{
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: {
+                    position: "bottom",
+                  },
+                },
+              }}
+            />
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
