@@ -23,8 +23,17 @@ function RoomDetailPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-purple-100 via-blue-50 to-white p-6 flex justify-center items-start">
-      <div className="bg-white p-6 rounded-2xl shadow-lg max-w-2xl w-full">
-        <h2 className="text-3xl font-bold mb-4 text-gray-800">
+      <div className="bg-white p-6 rounded-2xl shadow-lg max-w-2xl w-full relative">
+        
+        {/* Back Button */}
+        <button
+          onClick={() => navigate("/student-dashboard")}
+          className="absolute top-4 left-4 px-3 py-1 bg-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-300 transition"
+        >
+          ← Back
+        </button>
+
+        <h2 className="text-3xl font-bold mb-4 text-gray-800 text-center">
           Room {room.roomNo}
         </h2>
 
@@ -58,8 +67,6 @@ function RoomDetailPage() {
             <p className="text-lg font-semibold">₹{room.fees || 0}</p>
           </div>
         </div>
-
-        
 
         {/* Pay Now Button inside the card */}
         <div className="flex justify-end">

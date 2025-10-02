@@ -12,6 +12,8 @@ import UpdateNotice from "./pages/updateNotice";
 import RoomsPage from "./pages/RoomsPage";
 import RoomDetailPage from "./pages/RoomDetails";
 import PaymentPage from "./pages/PaymentPage";
+import CurrentAllocations from "./pages/CurrentAllocations";
+import AllocationHistory from "./pages/AllocationHistory";
 
 function App() {
   return (
@@ -29,7 +31,8 @@ function App() {
         <Route path="/rooms/:roomNo" element={<RoomDetailPage/>} />
         <Route path="/payment/:roomNo" element={<PaymentPage />} />
         <Route path="/profile" element={<EditProfile/>} />
-
+        <Route path="/warden/allocations" element={<CurrentAllocations/>} />
+        <Route path="/warden/allocations/history" element={<AllocationHistory/>} />
 
       </Routes>
     </Router>

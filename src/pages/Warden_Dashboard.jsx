@@ -270,9 +270,8 @@ const Warden_Dashboard = () => {
           )}
         </div>
       </section>
-
       {/* Charts */}
-      <div className="grid grid-cols-2 gap-6">
+      <div className="space-y-6">
         <div className="bg-white p-4 rounded-lg shadow-lg">
           <h2 className="font-bold text-xl mb-4">Activity Last 6 Days</h2>
           <div className="h-64">
@@ -296,10 +295,10 @@ const Warden_Dashboard = () => {
                       complaints.filter((c) => c.status?.toLowerCase() === "rejected").length,
                     ],
                     backgroundColor: [
-                      "rgba(255, 206, 86, 0.6)", // Pending - Yellow
-                      "rgba(54, 162, 235, 0.6)", // Processing - Blue
-                      "rgba(75, 192, 192, 0.6)", // Resolved - Green
-                      "rgba(255, 99, 132, 0.6)", // Rejected - Red
+                      "rgba(255, 206, 86, 0.6)", 
+                      "rgba(54, 162, 235, 0.6)", 
+                      "rgba(75, 192, 192, 0.6)", 
+                      "rgba(255, 99, 132, 0.6)", 
                     ],
                     borderWidth: 1,
                   },
