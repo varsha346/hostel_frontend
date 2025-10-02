@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 const LandingPage = () => {
   const navigate = useNavigate();
-
+ 
   return (
     <div
       className="flex h-screen items-center justify-center bg-cover bg-center relative"
