@@ -1,9 +1,22 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-
+import axiosInstance from "../utils/axiosInstance";
+import { useEffect} from "react";
 const LandingPage = () => {
   const navigate = useNavigate();
- 
+  useEffect(() => {
+    axiosInstance.get("/auth/check", { withCredentials: true }) // send cookies
+      .then((res) => {
+        if (res.status === 200) {
+          // Token valid, redirect to dashboard
+          navigate("/dashboard");
+        }
+      })
+      .catch((err) => {
+        // Token invalid or expired, stay on login page
+        console.log("Not authenticated");
+      });
+  }, [navigate]);
   return (
     <div
       className="flex h-screen items-center justify-center bg-cover bg-center relative"
