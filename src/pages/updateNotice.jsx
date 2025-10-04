@@ -5,7 +5,8 @@ import axiosInstance from "../utils/axiosInstance";
 const UpdateNotice = () => {
   useEffect(() => {
     // trigger one call so interceptor can catch invalid sessions
-    axiosInstance.get("/auth/check").catch(() => {});
+   axiosInstance.get("/auth/check").catch(err => console.log(err));
+
   }, []);
 
   const { id } = useParams();

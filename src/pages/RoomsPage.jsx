@@ -23,7 +23,8 @@ const RoomsPage = () => {
 
   // Fetch rooms
   useEffect(() => {
-     
+     axiosInstance.get("/auth/check").catch(err => console.log(err));
+
     // trigger one call so interceptor can catch invalid sessions
     axiosInstance.get("/auth/check").catch(() => {});
   

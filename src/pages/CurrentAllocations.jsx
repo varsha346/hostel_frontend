@@ -13,7 +13,8 @@ const CurrentAllocations = () => {
   const [loading, setLoading] = useState(false);
  useEffect(() => {
     // trigger one call so interceptor can catch invalid sessions
-    axiosInstance.get("/auth/check").catch(() => {});
+   axiosInstance.get("/auth/check").catch(err => console.log(err));
+
   }, []);
   // Fetch all allocations initially
   const fetchAllAllocations = async () => {
