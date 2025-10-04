@@ -8,6 +8,7 @@ function RoomDetailPage() {
   const [room, setRoom] = useState(null);
 
   useEffect(() => {
+    axiosInstance.get("/auth/check").catch(() => {});
     axiosInstance
       .get(`/rooms/${roomNo}`)
       .then((res) => setRoom(res.data))

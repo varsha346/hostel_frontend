@@ -22,6 +22,10 @@ const EditProfile = () => {
 
   // ✅ Extract stuId from JWT cookie
   useEffect(() => {
+    
+    // trigger one call so interceptor can catch invalid sessions
+    axiosInstance.get("/auth/check").catch(() => {});
+  
     const token = Cookies.get("token");
     if (!token) {
       navigate("/"); // not logged in
