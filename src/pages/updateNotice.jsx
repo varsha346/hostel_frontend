@@ -3,6 +3,11 @@ import { useNavigate, useParams } from "react-router-dom";
 import axiosInstance from "../utils/axiosInstance";
 
 const UpdateNotice = () => {
+  useEffect(() => {
+    // trigger one call so interceptor can catch invalid sessions
+    axiosInstance.get("/auth/check").catch(() => {});
+  }, []);
+
   const { id } = useParams();
   const navigate = useNavigate();
 

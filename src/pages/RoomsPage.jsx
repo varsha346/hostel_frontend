@@ -4,6 +4,8 @@ import axiosInstance from "../utils/axiosInstance";
 import { Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
+
+
 const RoomsPage = () => {
   const [rooms, setRooms] = useState([]);
   const [filter, setFilter] = useState("All");
@@ -21,6 +23,11 @@ const RoomsPage = () => {
 
   // Fetch rooms
   useEffect(() => {
+     
+    // trigger one call so interceptor can catch invalid sessions
+    axiosInstance.get("/auth/check").catch(() => {});
+  
+
     const fetchRooms = async () => {
       try {
         const res = await axiosInstance.get("/rooms/rooms-view?showAll=true");

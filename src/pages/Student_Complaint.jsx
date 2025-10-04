@@ -5,6 +5,11 @@ import Cookies from "js-cookie";
 import { Trash2 } from "lucide-react";
 
 const Student_Complaint = () => {
+  useEffect(() => {
+    // trigger one call so interceptor can catch invalid sessions
+    axiosInstance.get("/auth/check").catch(() => {});
+  }, []);
+
   const [studentId, setStudentId] = useState(null);
   const [complaints, setComplaints] = useState([]);
   const [subject, setSubject] = useState("");

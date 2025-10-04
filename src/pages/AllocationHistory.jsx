@@ -10,7 +10,10 @@ const AllocationHistory = () => {
     roomNo: "",
     year: "",
   });
-
+useEffect(() => {
+    // trigger one call so interceptor can catch invalid sessions
+    axiosInstance.get("/auth/check").catch(() => {});
+  }, []);
   const fetchAllocations = async () => {
     try {
       const params = { ...filters };

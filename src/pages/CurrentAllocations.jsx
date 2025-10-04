@@ -11,7 +11,10 @@ const CurrentAllocations = () => {
     year: "", // SE, TE, BE
   });
   const [loading, setLoading] = useState(false);
-
+ useEffect(() => {
+    // trigger one call so interceptor can catch invalid sessions
+    axiosInstance.get("/auth/check").catch(() => {});
+  }, []);
   // Fetch all allocations initially
   const fetchAllAllocations = async () => {
     try {

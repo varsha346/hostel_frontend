@@ -12,6 +12,7 @@ const LoginSignup = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  
   // ------------------ LOGIN ------------------
   const handleLogin = async (e) => {
     e.preventDefault();
