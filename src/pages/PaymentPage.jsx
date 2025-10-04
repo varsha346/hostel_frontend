@@ -27,7 +27,8 @@ const PaymentPage = () => {
   };
 
   useEffect(() => {
-     axiosInstance.get("/auth/check").catch(() => {});
+    axiosInstance.get("/auth/check").catch(err => console.log(err));
+
     const studentId = getStudentId();
     if (!studentId) {
       alert("You must be logged in to make a payment.");
