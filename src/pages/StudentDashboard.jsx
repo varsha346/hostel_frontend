@@ -9,8 +9,7 @@ const Student_Dashboard = () => {
   const navigate = useNavigate();
   useEffect(() => {
     // trigger one call so interceptor can catch invalid sessions
-   axiosInstance.get("/auth/check").catch(err => console.log(err));
-
+    axiosInstance.get("/auth/check").catch(() => {});
   }, []);
 
   const [roomType, setRoomType] = useState("All");
