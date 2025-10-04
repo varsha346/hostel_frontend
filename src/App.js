@@ -14,6 +14,8 @@ import RoomDetailPage from "./pages/RoomDetails";
 import PaymentPage from "./pages/PaymentPage";
 import CurrentAllocations from "./pages/CurrentAllocations";
 import AllocationHistory from "./pages/AllocationHistory";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -36,6 +38,9 @@ function App() {
         <Route path="/profile" element={<EditProfile/>} />
         <Route path="/warden/allocations" element={<CurrentAllocations/>} />
         <Route path="/warden/allocations/history" element={<AllocationHistory/>} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+
 
       </Routes>
     </Router>
@@ -45,8 +50,4 @@ function App() {
 
 export default App;
 
-<<<<<<< HEAD
 
-
-=======
->>>>>>> 2167de04d9a2455bf470d1ceca07d14f3c918935
