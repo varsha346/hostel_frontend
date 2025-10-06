@@ -7,8 +7,8 @@ import { useNavigate } from "react-router-dom";
 const EditProfile = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    name :"",
-    email : "",
+    name: "",
+    email: "",
     contact: "",
     guardianContact: "",
     dept: "",
@@ -20,38 +20,57 @@ const EditProfile = () => {
   const [loading, setLoading] = useState(true);
   const [stuId, setStuId] = useState(null);
 
-  // ✅ Extract stuId from JWT cookie
+  // ✅ Fetch profile safely
   useEffect(() => {
     const token = Cookies.get("token");
+
     if (!token) {
-      navigate("/"); // not logged in
+      console.warn("⚠️ No token found in cookies. Redirecting...");
+      navigate("/");
       return;
     }
-    const decoded = jwtDecode(token);
-    setStuId(decoded.userId);
 
-    // Fetch profile
-    const fetchProfile = async () => {
-      try {
-        const res = await axiosInstance.get(`/students/${decoded.userId}/profile`);
-        setFormData({
-          name : res.data.name || "",
-          email : res.data.email || "",
-          contact: res.data.contact || "",
-          guardianContact: res.data.guardianContact || "",
-          dept: res.data.dept || "",
-          address: res.data.address || "",
-          year: res.data.year || "",
-          feeStatus: res.data.feeStatus || false,
-        });
-      } catch (err) {
-        console.error("Error fetching profile:", err);
-      } finally {
-        setLoading(false);
+    try {
+      // Validate token structure before decoding
+      if (!token.includes(".")) {
+        throw new Error("Invalid token format");
       }
-    };
 
-    fetchProfile();
+      const decoded = jwtDecode(token);
+      if (!decoded || !decoded.userId) {
+        throw new Error("Token missing userId");
+      }
+
+      setStuId(decoded.userId);
+
+      const fetchProfile = async () => {
+        try {
+          const res = await axiosInstance.get(`/students/${decoded.userId}/profile`);
+          setFormData({
+            name: res.data.name || "",
+            email: res.data.email || "",
+            contact: res.data.contact || "",
+            guardianContact: res.data.guardianContact || "",
+            dept: res.data.dept || "",
+            address: res.data.address || "",
+            year: res.data.year || "",
+            feeStatus: res.data.feeStatus || false,
+          });
+        } catch (err) {
+          console.error("❌ Error fetching profile:", err);
+          alert("Failed to load profile details. Please try again.");
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchProfile();
+    } catch (err) {
+      console.error("❌ JWT Decode Error:", err.message);
+      Cookies.remove("token");
+      alert("Session expired or invalid. Please log in again.");
+      navigate("/");
+    }
   }, [navigate]);
 
   // ✅ Handle input change
@@ -67,9 +86,7 @@ const EditProfile = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axiosInstance.put(`/students/${stuId}/profile`, {
-    ...formData,
-    });
+      await axiosInstance.put(`/students/${stuId}/profile`, { ...formData });
       alert("Profile updated successfully ✅");
       navigate("/student-dashboard");
     } catch (err) {
@@ -78,13 +95,14 @@ const EditProfile = () => {
     }
   };
 
-  if (loading) return <div className="p-6">Loading...</div>;
+  if (loading) return <div className="p-6 text-center">Loading profile...</div>;
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col items-center p-6">
       <div className="bg-white shadow-lg rounded-lg w-full max-w-2xl p-6">
         <h2 className="text-2xl font-bold mb-6 text-center">Edit Profile</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Name */}
           <div>
             <label className="block font-semibold mb-1">Name</label>
             <input
@@ -97,6 +115,7 @@ const EditProfile = () => {
             />
           </div>
 
+          {/* Email */}
           <div>
             <label className="block font-semibold mb-1">Email</label>
             <input
@@ -108,6 +127,7 @@ const EditProfile = () => {
               required
             />
           </div>
+
           {/* Contact */}
           <div>
             <label className="block font-semibold mb-1">Contact</label>
@@ -172,19 +192,18 @@ const EditProfile = () => {
               required
             />
           </div>
-        
 
           {/* Fee Status */}
           <div className="flex items-center">
             <input
-                type="checkbox"
-                name="feeStatus"
-                checked={formData.feeStatus}
-                disabled   
-                className="mr-2 cursor-not-allowed"
+              type="checkbox"
+              name="feeStatus"
+              checked={formData.feeStatus}
+              disabled
+              className="mr-2 cursor-not-allowed"
             />
             <label className="font-semibold">Fee Paid</label>
-        </div>
+          </div>
 
           {/* Buttons */}
           <div className="flex justify-between mt-6">

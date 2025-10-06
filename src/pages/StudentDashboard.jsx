@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import axiosInstance from "../utils/axiosInstance";
 import { Bar ,Pie} from "react-chartjs-2";
 import "chart.js/auto";
+import { DUMMY_ROOMS, DUMMY_COMPLAINTS, DUMMY_NOTICES } from '../data/dummyHosteldata';
 
 const Student_Dashboard = () => {
   const navigate = useNavigate();
@@ -15,7 +16,24 @@ const Student_Dashboard = () => {
 
   // Fetch rooms, complaints & notices
   useEffect(() => {
-    const fetchRooms = async () => {
+
+    const MOCK_DELAY = 500;
+
+    setTimeout(() => {
+            // fetching rooms
+            setRooms(DUMMY_ROOMS);
+            
+            // fetching complaints
+            setComplaints(DUMMY_COMPLAINTS);
+            
+            // fetching notices
+            setNotices(DUMMY_NOTICES);
+
+            console.log("Dashboard data is being served from DUMMY_DATA.");
+        }, MOCK_DELAY);
+
+
+    /*const fetchRooms = async () => {
       try {
         const res = await axiosInstance.get("/rooms/rooms-view?showAll=true", { withCredentials: true });
         setRooms(res.data);
@@ -44,7 +62,7 @@ const Student_Dashboard = () => {
 
     fetchRooms();
     fetchComplaints();
-    fetchNotices();
+    fetchNotices();*/
   }, []);
 
   const handleLogout = async () => {

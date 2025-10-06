@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axiosInstance from "../utils/axiosInstance";
 import { Bar, Pie } from "react-chartjs-2";
 import "chart.js/auto";
+import { DUMMY_COMPLAINTS, DUMMY_NOTICES, DUMMY_LEAVES } from '../data/dummyHosteldata';
 
 const Warden_Dashboard = () => {
   const navigate = useNavigate();
@@ -12,7 +13,23 @@ const Warden_Dashboard = () => {
   const [notices, setNotices] = useState([]);
 
   useEffect(() => {
-    const fetchLeaves = async () => {
+
+    const MOCK_DELAY = 500;
+
+    setTimeout(() => {
+            // Mock fetching leaves
+            setLeaves(DUMMY_LEAVES);
+            
+            // Mock fetching complaints
+            setComplaints(DUMMY_COMPLAINTS);
+            
+            // Mock fetching notices
+            setNotices(DUMMY_NOTICES);
+
+            console.log("Warden Dashboard data is being served from DUMMY_DATA.");
+        }, MOCK_DELAY);
+        
+    /*const fetchLeaves = async () => {
       try {
         const res = await axiosInstance.get("/leaves/all", { withCredentials: true });
         setLeaves(res.data);
@@ -41,7 +58,7 @@ const Warden_Dashboard = () => {
 
     fetchLeaves();
     fetchComplaints();
-    fetchNotices();
+    fetchNotices();*/
   }, []);
 
   const handleLeaveStatusChange = async (id, newStatus) => {

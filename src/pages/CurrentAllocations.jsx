@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../utils/axiosInstance";
+import { DUMMY_ALLOCATIONS } from "../data/dummyHosteldata"; // <-- MOCK DATA IMPORTED
 
 const CurrentAllocations = () => {
   const navigate = useNavigate();
@@ -12,35 +13,36 @@ const CurrentAllocations = () => {
   });
   const [loading, setLoading] = useState(false);
 
-  // Fetch all allocations initially
+  // --- MOCKED FETCH ALLOCATIONS ---
   const fetchAllAllocations = async () => {
-    try {
-      setLoading(true);
-      const res = await axiosInstance.get("/api/allocations/currentAll");
-      setAllocations(res.data);
-      setLoading(false);
-    } catch (err) {
-      console.error("Error fetching all allocations:", err);
-      setLoading(false);
-    }
+    console.log("Fetching ALL Allocations from DUMMY_DATA.");
+    setLoading(true);
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    setAllocations(DUMMY_ALLOCATIONS);
+    setLoading(false);
   };
 
-  // Fetch filtered allocations
+  // --- MOCKED FETCH FILTERED ALLOCATIONS ---
   const fetchFilteredAllocations = async () => {
-    try {
-      setLoading(true);
-      const params = {};
-      if (filters.studentName.trim() !== "") params.studentName = filters.studentName;
-      if (filters.roomNo.trim() !== "") params.roomNo = filters.roomNo;
-      if (filters.year.trim() !== "") params.year = filters.year;
+    console.log("Fetching FILTERED Allocations from DUMMY_DATA.");
+    setLoading(true);
+    await new Promise((resolve) => setTimeout(resolve, 500));
 
-      const res = await axiosInstance.get("/api/allocations/current", { params });
-      setAllocations(res.data);
-      setLoading(false);
-    } catch (err) {
-      console.error("Error fetching filtered allocations:", err);
-      setLoading(false);
-    }
+    let filtered = DUMMY_ALLOCATIONS.filter((alloc) => {
+      const nameMatch = filters.studentName
+        ? alloc.user?.name.toLowerCase().includes(filters.studentName.toLowerCase())
+        : true;
+      const roomMatch = filters.roomNo
+        ? alloc.room?.roomNo.includes(filters.roomNo)
+        : true;
+      const yearMatch = filters.year
+        ? alloc.dept.toLowerCase() === filters.year.toLowerCase()
+        : true;
+      return nameMatch && roomMatch && yearMatch;
+    });
+
+    setAllocations(filtered);
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -56,7 +58,7 @@ const CurrentAllocations = () => {
     if (anyFilter) {
       fetchFilteredAllocations();
     } else {
-      fetchAllAllocations(); // No filters, show all
+      fetchAllAllocations();
     }
   };
 
@@ -65,52 +67,80 @@ const CurrentAllocations = () => {
     fetchAllAllocations();
   };
 
+  // --- UI ---
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-8">
       {/* Header */}
-      <header className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-800">Current Allocations</h1>
+      <header className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => navigate("/warden-dashboard")}
+            className="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold px-4 py-2 rounded-lg shadow transition"
+          >
+            ← Back to Dashboard
+          </button>
+          <h1 className="text-4xl font-extrabold text-gray-800 flex items-center gap-3">
+            🏠 Current Allocations
+            <span className="text-sm font-medium text-blue-500 bg-blue-50 px-3 py-1 rounded-full">
+              Mocked Data
+            </span>
+          </h1>
+        </div>
+
         <button
           onClick={() => navigate("/warden/allocations/history")}
-          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg"
+          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-lg shadow transition"
         >
           View Allocation History
         </button>
       </header>
 
-      {/* Filters */}
-      <section className="bg-white p-4 rounded-lg shadow-lg mb-6">
-        <h2 className="font-bold text-xl mb-4">Filters</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* Filters Section */}
+      <section className="bg-white p-6 rounded-2xl shadow-md mb-8 border border-gray-100">
+        <div className="flex justify-between items-center mb-5">
+          <h2 className="text-2xl font-semibold text-gray-800 flex items-center gap-2">
+            🔍 Filters
+          </h2>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
-            <label className="block text-gray-600 mb-1">Student Name</label>
+            <label className="block text-gray-600 mb-2 font-medium">
+              Student Name
+            </label>
             <input
               type="text"
               name="studentName"
               value={filters.studentName}
               onChange={handleFilterChange}
               placeholder="Enter student name"
-              className="w-full p-2 border rounded"
+              className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
             />
           </div>
+
           <div>
-            <label className="block text-gray-600 mb-1">Room No</label>
+            <label className="block text-gray-600 mb-2 font-medium">
+              Room No
+            </label>
             <input
               type="text"
               name="roomNo"
               value={filters.roomNo}
               onChange={handleFilterChange}
               placeholder="Enter room number"
-              className="w-full p-2 border rounded"
+              className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
             />
           </div>
+
           <div>
-            <label className="block text-gray-600 mb-1">Academic Year</label>
+            <label className="block text-gray-600 mb-2 font-medium">
+              Academic Year
+            </label>
             <select
               name="year"
               value={filters.year}
               onChange={handleFilterChange}
-              className="w-full p-2 border rounded"
+              className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
             >
               <option value="">All</option>
               <option value="SE">SE</option>
@@ -119,16 +149,17 @@ const CurrentAllocations = () => {
             </select>
           </div>
         </div>
-        <div className="mt-4 flex gap-2">
+
+        <div className="mt-6 flex flex-wrap gap-3">
           <button
             onClick={handleApplyFilters}
-            className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg"
+            className="bg-green-500 hover:bg-green-600 text-white font-semibold px-6 py-2 rounded-lg shadow transition"
           >
             Apply Filters
           </button>
           <button
             onClick={handleResetFilters}
-            className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg"
+            className="bg-gray-400 hover:bg-gray-500 text-white font-semibold px-6 py-2 rounded-lg shadow transition"
           >
             Reset Filters
           </button>
@@ -136,40 +167,51 @@ const CurrentAllocations = () => {
       </section>
 
       {/* Allocations Table */}
-      <section className="bg-white p-4 rounded-lg shadow-lg">
+      <section className="bg-white p-6 rounded-2xl shadow-md border border-gray-100">
         {loading ? (
-          <p className="text-gray-500">Loading allocations...</p>
+          <p className="text-gray-500 italic">Loading allocations...</p>
         ) : allocations.length > 0 ? (
           <div className="overflow-x-auto">
-            <table className="w-full table-auto border-collapse border border-gray-300">
-              <thead>
-                <tr className="bg-gray-100">
-                  <th className="border p-2">Student Name</th>
-                  <th className="border p-2">Room No</th>
-                  <th className="border p-2">Dept</th>
-                  <th className="border p-2">Contact</th>
-                  <th className="border p-2">Guardian Contact</th>
-                  <th className="border p-2">Address</th>
-                  <th className="border p-2">Contract End Date</th>
+            <table className="w-full border border-gray-200 rounded-lg overflow-hidden">
+              <thead className="bg-blue-50 text-gray-700 font-semibold sticky top-0">
+                <tr>
+                  <th className="p-3 border-b">Student Name</th>
+                  <th className="p-3 border-b">Room No</th>
+                  <th className="p-3 border-b">Dept</th>
+                  <th className="p-3 border-b">Contact</th>
+                  <th className="p-3 border-b">Guardian Contact</th>
+                  <th className="p-3 border-b">Address</th>
+                  <th className="p-3 border-b">Contract End Date</th>
                 </tr>
               </thead>
               <tbody>
-                {allocations.map((alloc) => (
-                  <tr key={alloc.stuId} className="hover:bg-gray-50">
-                    <td className="border p-2">{alloc.user?.name}</td>
-                    <td className="border p-2">{alloc.room?.roomNo}</td>
-                    <td className="border p-2">{alloc.dept}</td>
-                    <td className="border p-2">{alloc.contact}</td>
-                    <td className="border p-2">{alloc.guardianContact}</td>
-                    <td className="border p-2">{alloc.address}</td>
-                    <td className="border p-2">{alloc.contractEndDate}</td>
+                {allocations.map((alloc, index) => (
+                  <tr
+                    key={alloc.stuId}
+                    className={`${
+                      index % 2 === 0 ? "bg-white" : "bg-gray-50"
+                    } hover:bg-blue-50 transition`}
+                  >
+                    <td className="p-3 border-b">{alloc.user?.name}</td>
+                    <td className="p-3 border-b text-center">
+                      {alloc.room?.roomNo}
+                    </td>
+                    <td className="p-3 border-b text-center">{alloc.dept}</td>
+                    <td className="p-3 border-b text-center">{alloc.contact}</td>
+                    <td className="p-3 border-b text-center">
+                      {alloc.guardianContact}
+                    </td>
+                    <td className="p-3 border-b">{alloc.address}</td>
+                    <td className="p-3 border-b text-center">
+                      {alloc.contractEndDate}
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
         ) : (
-          <p className="text-gray-500">No current allocations found.</p>
+          <p className="text-gray-500 italic">No current allocations found.</p>
         )}
       </section>
     </div>
