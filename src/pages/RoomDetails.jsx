@@ -66,7 +66,7 @@ function RoomDetailPage() {
           </div>
           <div className="bg-gray-50 p-3 rounded-lg shadow-inner col-span-2">
             <p className="text-gray-600 text-sm">Price</p>
-            <p className="text-lg font-semibold">₹{room.fees || 0}</p>
+            <p className="text-lg font-semibold">₹{1}</p>
           </div>
         </div>
 
