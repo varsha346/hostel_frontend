@@ -72,6 +72,7 @@ const PaymentPage = () => {
         const orderRes = await axiosInstance.post("/api/payment/create-order", {
           amount: 100, // in paise
           roomNo: roomNo,
+          studentId: studentId
         });
 
         const orderData = orderRes.data;
@@ -85,26 +86,8 @@ const PaymentPage = () => {
           description: `Payment for Room ${roomNo}`,
           order_id: orderData.id,
           handler: async function (response) {
-            try {
-              // Call backend to save payment and assign student
-              await axiosInstance.post("/api/payment/success", {
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_payment_id: response.razorpay_payment_id,
-                studentId: studentId,
-                roomNo: roomNo,
-                amount: orderData.amount,
-              });
-
-              alert("Payment successful and student assigned!");
-              navigate(`/rooms/${roomNo}`);
-            } catch (err) {
-              console.error("Error saving payment:", err);
-              const errorMsg =
-                err.response?.data?.error ||
-                "Payment successful but failed to assign student. Contact admin.";
-              alert(errorMsg);
-              navigate(`/rooms/${roomNo}`);
-            }
+            alert("Payment successful! Processing confirmation...");
+            navigate(`/rooms/${roomNo}`);
           },
           prefill: {
             name: "Student Name",
